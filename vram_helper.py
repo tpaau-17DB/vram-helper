@@ -1,10 +1,6 @@
 """
-Simple python program that sends warnings about vram usage.
+Simple python script that sends warnings about vram usage.
 Uses mako by default
-
-get_vram_usage() returns vram usage in megabytes
-
-send_vram_warning(message) sends notification to user (using mako by default)
 
 MAX_VRAM_USAGE is maximal acceptable vram usage,
 if GPU exceeds this limit warning will be displayed,
@@ -18,7 +14,7 @@ import re
 import time
 
 # max acceptable vram usage in megabytes, make sure to update this variable
-MAX_VRAM_USAGE = 3800
+MAX_VRAM_USAGE = 10
 
 # Maximum allowed VRAM usage threshold in megabytes
 TRESHOLD = 200
@@ -41,7 +37,7 @@ def get_vram_usage():
 
 def send_vram_warning(message):
     """
-    prints VRAM usage warning using mako (change your notification manager as needed)
+    prints VRAM usage warning using notify-send (change your this as needed)
     """
     try:
         subprocess.run(["notify-send", "--urgency=critical" ,"Warning!", message])
