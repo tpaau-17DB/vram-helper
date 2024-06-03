@@ -40,8 +40,8 @@ def send_vram_warning(message):
     prints VRAM usage warning using notify-send (change your this as needed)
     """
     try:
-        print("Warning! " + message)
-        #subprocess.run(["notify-send", "--urgency=critical" ,"Warning!", message])
+        #print("Warning! " + message)
+        subprocess.run(["notify-send", "--urgency=critical" ,"Warning!", message])
     except subprocess.CalledProcessError as e:
         print("Error:", e)
 
