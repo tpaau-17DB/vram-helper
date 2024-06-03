@@ -1,7 +1,7 @@
 # vram-helper
 git repo: https://github.com/NicholasNDev/vram-helper
 
-Little python script that displays warning when VRAM exceeds specified limit. Useful when doing some VRAM-intensive tasks on low-end devices (nvidia gpus only).
+Little python script that displays warnings when VRAM exceeds specified limit. Useful when doing some VRAM-intensive tasks on low-end devices (nvidia gpus only).
 
 ## Dependencies
   Script requires nvidia-smi to get VRAM usage so you obviously need that installed
