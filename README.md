@@ -6,11 +6,13 @@ Little python script that displays warning when VRAM exceeds specified limit. Us
 ## Dependencies
   Script requires nvidia-smi to get VRAM usage so you obviously need that installed
 
+<!--
   For python requirements you can run:
 
   ```
   pip install -r requirements.txt
   ```
+-->
 
   Script will send notifications using notify-send, so make sure it works and is configured properly. You can do this by typing:
 
