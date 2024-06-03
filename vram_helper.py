@@ -14,7 +14,7 @@ import re
 import time
 
 # max acceptable vram usage in megabytes, make sure to update this variable
-MAX_VRAM_USAGE = 10
+MAX_VRAM_USAGE = 3800
 
 # Maximum allowed VRAM usage threshold in megabytes
 TRESHOLD = 200
@@ -40,7 +40,8 @@ def send_vram_warning(message):
     prints VRAM usage warning using notify-send (change your this as needed)
     """
     try:
-        subprocess.run(["notify-send", "--urgency=critical" ,"Warning!", message])
+        print("Warning! " + message)
+        #subprocess.run(["notify-send", "--urgency=critical" ,"Warning!", message])
     except subprocess.CalledProcessError as e:
         print("Error:", e)
 
@@ -54,5 +55,5 @@ if __name__ == '__main__':
             print("VRAM Usage:", vram_usage, "MiB")
             if vram_usage > LAST_WARNING_VRAM + TRESHOLD:
                 LAST_WARNING_VRAM += TRESHOLD
-                send_vram_warning(f"VRAM usage exceeded {vram_usage}Mib! ({BUDGET - vram_usage}Mib free, {(int)((vram_usage / BUDGET) * 100)}% used)")
+                send_vram_warning(f"VRAM usage critical! {vram_usage}/{BUDGET}Mib, ({(int)((vram_usage / BUDGET) * 100)}%)")
         time.sleep(1)
