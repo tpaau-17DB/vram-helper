@@ -17,10 +17,13 @@ import time
 MAX_VRAM_USAGE = 3800
 
 # Maximum allowed VRAM usage threshold in megabytes
-TRESHOLD = 200
+TRESHOLD = 100
 
 #max aviable vram, make sure to update this variable
 BUDGET = 4096
+
+#time between updates
+WAITTIME = 2
 
 def get_vram_usage():
     """
@@ -32,7 +35,7 @@ def get_vram_usage():
                                           "--format=csv,noheader,nounits"])
         return int(re.search(r'\d+', output.decode('utf-8')).group())
     except subprocess.CalledProcessError as e:
-        print("Error:", e)
+        print("\033[91m[ERR]\033[0m Failed to get VRAM usage! ", e)
         return None
 
 def send_vram_warning(message):
@@ -40,20 +43,20 @@ def send_vram_warning(message):
     prints VRAM usage warning using notify-send (change your this as needed)
     """
     try:
-        #print("Warning! " + message)
+        print("Warning! " + message)
         subprocess.run(["notify-send", "--urgency=critical" ,"Warning!", message])
     except subprocess.CalledProcessError as e:
-        print("Error:", e)
+        print("\033[91m[ERR]\033[0m Error: ", e)
 
 if __name__ == '__main__':
-    LAST_WARNING_VRAM = MAX_VRAM_USAGE - TRESHOLD
+    LAST_WARNING_VRAM = MAX_VRAM_USAGE - 20
     while True:
         vram_usage = get_vram_usage()
         if vram_usage is not None:
-            if vram_usage < LAST_WARNING_VRAM - TRESHOLD - 20:
+            if vram_usage < LAST_WARNING_VRAM - TRESHOLD and LAST_WARNING_VRAM >= MAX_VRAM_USAGE:
                 LAST_WARNING_VRAM -= TRESHOLD
-            print("VRAM Usage:", vram_usage, "MiB")
+            print("\033[92m[LOG]\033[0m VRAM Usage:", vram_usage, "MiB")
             if vram_usage > LAST_WARNING_VRAM + TRESHOLD:
                 LAST_WARNING_VRAM += TRESHOLD
                 send_vram_warning(f"VRAM usage critical! {vram_usage}/{BUDGET}Mib, ({(int)((vram_usage / BUDGET) * 100)}%)")
-        time.sleep(1)
+        time.sleep(WAITTIME)
