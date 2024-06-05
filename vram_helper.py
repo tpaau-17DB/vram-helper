@@ -88,7 +88,7 @@ def update_variables():
     except subprocess.CalledProcessError as e:
         log_err(f"Failed to gather necessary info due to following errors: {e}")
     except FileNotFoundError:
-        log_err(f"Failed to gather necessary info, make sure that nvidia drivers are installed correctly!")
+        log_err(f"Failed to gather necessary info, make sure that nvidia drivers are installed!")
         sys.exit()
 
 
