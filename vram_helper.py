@@ -13,14 +13,15 @@ import subprocess
 import re
 import time
 import sys
+import argparse
 
-# max acceptable VRAM usage in megabytes, make sure to update this variable
+# max acceptable VRAM usage in megabytes
 MAX_VRAM_USAGE = 3800
 
 # Maximum allowed VRAM usage threshold in megabytes
 TRESHOLD = 100
 
-#max aviable VRAM, make sure to update this variable
+#max aviable VRAM
 VRAM_TOTAL = 2048
 
 #time between updates in seconds
@@ -31,6 +32,9 @@ WAITTIME = 2
 #  -1 to display only warnings
 #  -2 to display only errors
 VERBOSITY_LEVEL = 0
+
+#enable automatic configuration
+AUTODETECT = True
 
 
 def log_mess(message, layer = 0):
@@ -68,8 +72,8 @@ def update_variables():
                                           "--query-gpu=name",
                                           "--format=csv,noheader"])
         log_mess(f"Detected GPU: {output.decode('utf-8').strip()}", 1)
-        output = subprocess.check_output(["nvidia-smi",
 
+        output = subprocess.check_output(["nvidia-smi",
                                           "--query-gpu=memory.total",
                                           "--format=csv,noheader,nounits"])
 
@@ -77,11 +81,16 @@ def update_variables():
         VRAM_TOTAL = int(output.decode("utf-8").strip())
         log_mess(f"Detected {VRAM_TOTAL}Mib of VRAM aviable.", 1)
 
+        global MAX_VRAM_USAGE
+        MAX_VRAM_USAGE = VRAM_TOTAL * .9
+        log_mess(f"MAX_VRAM_USAGE set to {VRAM_TOTAL * .9}", 1)
+
     except subprocess.CalledProcessError as e:
         log_err(f"Failed to gather necessary info due to following errors: {e}")
         sys.exit()
     except FileNotFoundError:
         log_err(f"Failed to gather necessary info due to following errors: {e}")
+        sys.exit()
 
 
 def get_vram_usage():
@@ -96,6 +105,7 @@ def get_vram_usage():
     except subprocess.CalledProcessError as e:
         log_err(f"Failed to get VRAM usage! {e}")
         sys.exit()
+
     except FileNotFoundError:
         log_err("Failed to get VRAM usage! " +
                 "'nvidia-smi' command not found. " +
