@@ -26,6 +26,34 @@ BUDGET = 4096
 #time between updates
 WAITTIME = 2
 
+#controls the minimum priority of log messages:
+#  -0 to display all logs
+#  -1 to display only warnings
+#  -2 to display only errors
+VERBOSITY_LEVEL = 0
+
+def log_mess(message):
+    """
+    prints messages in log format
+    """
+    if VERBOSITY_LEVEL == 0:
+        return
+    print(f"\033[92m[LOG]\033[0m {message}")
+
+def log_warn(message):
+    """
+    prints messages in warning format
+    """
+    if VERBOSITY_LEVEL > 1:
+        return
+    print(f"\033[33m[WARN]\033[0m {message}")
+
+def log_err(message):
+    """
+    prints messages in error format
+    """
+    print(f"\033[91m[ERR]\033[0m {message}")
+
 def get_vram_usage():
     """
     returns main GPU VRAM usage in megabytes
@@ -36,11 +64,11 @@ def get_vram_usage():
                                           "--format=csv,noheader,nounits"])
         return int(re.search(r'\d+', output.decode('utf-8')).group())
     except subprocess.CalledProcessError as e:
-        print("\033[91m[ERR]\033[0m Failed to get VRAM usage! ", e)
+        log_err(f"Failed to get VRAM usage! {e}")
         sys.exit()
     except FileNotFoundError:
-        print("\033[91m[ERR]\033[0m Failed to get VRAM usage, 'nvidia-smi' command not found. Make sure NVIDIA drivers are installed.")
-        sys.exit();
+        log_err("Failed to get VRAM usage, 'nvidia-smi' command not found. Make sure NVIDIA drivers are installed.")
+        sys.exit()
 
 def send_vram_warning(message):
     """
@@ -48,19 +76,26 @@ def send_vram_warning(message):
     """
     try:
         print("Warning! " + message)
-        subprocess.run(["notify-send", "--urgency=critical" ,"Warning!", message])
+        subprocess.run(["notify-send", "--urgency=critical" ,"Warning!", message], check=True)
     except subprocess.CalledProcessError as e:
-        print("\033[91m[ERR]\033[0m Error: ", e)
+        log_err(f"Error: {e}")
 
-if __name__ == '__main__':
-    LAST_WARNING_VRAM = MAX_VRAM_USAGE - 20
+def start_monitoring():
+    """
+    the main program loop,
+    monitors vram usage in real time and sends warnings if it exceeds certain limit
+    """
+    last_warning_vram = MAX_VRAM_USAGE - 20
     while True:
         vram_usage = get_vram_usage()
         if vram_usage is not None:
-            if vram_usage < LAST_WARNING_VRAM - TRESHOLD and LAST_WARNING_VRAM >= MAX_VRAM_USAGE:
-                LAST_WARNING_VRAM -= TRESHOLD
-            print("\033[92m[LOG]\033[0m VRAM Usage:", vram_usage, "MiB")
-            if vram_usage > LAST_WARNING_VRAM + TRESHOLD:
-                LAST_WARNING_VRAM += TRESHOLD
+            if vram_usage < last_warning_vram - TRESHOLD and last_warning_vram >= MAX_VRAM_USAGE:
+                last_warning_vram -= TRESHOLD
+            log_mess(f"VRAM Usage: {vram_usage} MiB")
+            if vram_usage > last_warning_vram + TRESHOLD:
+                last_warning_vram += TRESHOLD
                 send_vram_warning(f"VRAM usage critical! {vram_usage}/{BUDGET}Mib, ({(int)((vram_usage / BUDGET) * 100)}%)")
         time.sleep(WAITTIME)
+
+if __name__ == "__main__":
+    start_monitoring()
