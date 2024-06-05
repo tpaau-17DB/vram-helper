@@ -1,8 +1,8 @@
 """
-Simple python script that sends warnings about vram usage.
-Uses mako by default
+Simple python script that sends warnings about VRAM usage.
+Uses notify-send by default
 
-MAX_VRAM_USAGE is maximal acceptable vram usage,
+MAX_VRAM_USAGE is maximal acceptable VRAM usage,
 if GPU exceeds this limit warning will be displayed,
 then for every +TRESHOLD Mib it will display another warning
 
@@ -14,16 +14,16 @@ import re
 import time
 import sys
 
-# max acceptable vram usage in megabytes, make sure to update this variable
+# max acceptable VRAM usage in megabytes, make sure to update this variable
 MAX_VRAM_USAGE = 3800
 
 # Maximum allowed VRAM usage threshold in megabytes
 TRESHOLD = 100
 
-#max aviable vram, make sure to update this variable
+#max aviable VRAM, make sure to update this variable
 BUDGET = 4096
 
-#time between updates
+#time between updates in seconds
 WAITTIME = 2
 
 #controls the minimum priority of log messages:
@@ -32,13 +32,15 @@ WAITTIME = 2
 #  -2 to display only errors
 VERBOSITY_LEVEL = 0
 
+
 def log_mess(message):
     """
     prints messages in log format
     """
-    if VERBOSITY_LEVEL == 0:
+    if VERBOSITY_LEVEL > 0:
         return
     print(f"\033[92m[LOG]\033[0m {message}")
+
 
 def log_warn(message):
     """
@@ -48,11 +50,13 @@ def log_warn(message):
         return
     print(f"\033[33m[WARN]\033[0m {message}")
 
+
 def log_err(message):
     """
     prints messages in error format
     """
     print(f"\033[91m[ERR]\033[0m {message}")
+
 
 def get_vram_usage():
     """
@@ -67,8 +71,11 @@ def get_vram_usage():
         log_err(f"Failed to get VRAM usage! {e}")
         sys.exit()
     except FileNotFoundError:
-        log_err("Failed to get VRAM usage, 'nvidia-smi' command not found. Make sure NVIDIA drivers are installed.")
+        log_err("Failed to get VRAM usage! " +
+                "'nvidia-smi' command not found. " +
+                "Please make sure NVIDIA drivers are installed.")
         sys.exit()
+
 
 def send_vram_warning(message):
     """
@@ -79,6 +86,7 @@ def send_vram_warning(message):
         subprocess.run(["notify-send", "--urgency=critical" ,"Warning!", message], check=True)
     except subprocess.CalledProcessError as e:
         log_err(f"Error: {e}")
+
 
 def start_monitoring():
     """
@@ -94,8 +102,11 @@ def start_monitoring():
             log_mess(f"VRAM Usage: {vram_usage} MiB")
             if vram_usage > last_warning_vram + TRESHOLD:
                 last_warning_vram += TRESHOLD
-                send_vram_warning(f"VRAM usage critical! {vram_usage}/{BUDGET}Mib, ({(int)((vram_usage / BUDGET) * 100)}%)")
+                send_vram_warning("VRAM usage critical! " +
+                        f"{vram_usage}/{BUDGET}Mib, " + 
+                        f"({(int)((vram_usage / BUDGET) * 100)}%)")
         time.sleep(WAITTIME)
+
 
 if __name__ == "__main__":
     start_monitoring()
