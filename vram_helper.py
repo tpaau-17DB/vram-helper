@@ -12,6 +12,7 @@ BUDGET is your gpu VRAM capacity. Make sure to update this variable
 import subprocess
 import re
 import time
+import sys
 
 # max acceptable vram usage in megabytes, make sure to update this variable
 MAX_VRAM_USAGE = 3800
@@ -36,7 +37,10 @@ def get_vram_usage():
         return int(re.search(r'\d+', output.decode('utf-8')).group())
     except subprocess.CalledProcessError as e:
         print("\033[91m[ERR]\033[0m Failed to get VRAM usage! ", e)
-        return None
+        sys.exit()
+    except FileNotFoundError:
+        print("\033[91m[ERR]\033[0m Failed to get VRAM usage, 'nvidia-smi' command not found. Make sure NVIDIA drivers are installed.")
+        sys.exit();
 
 def send_vram_warning(message):
     """
