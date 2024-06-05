@@ -4,7 +4,7 @@ Uses notify-send by default
 
 MAX_VRAM_USAGE is maximal acceptable VRAM usage,
 if GPU exceeds this limit warning will be displayed,
-then for every +TRESHOLD Mib it will display another warning
+then for every +THRESHOLD Mib it will display another warning
 
 VRAM_TOTAL is your gpu VRAM capacity. Make sure to update this variable
 """
@@ -19,9 +19,9 @@ import argparse
 MAX_VRAM_USAGE = 3800
 
 # Maximum allowed VRAM usage threshold in megabytes
-TRESHOLD = 100
+THRESHOLD = 100
 
-#max aviable VRAM
+#max available VRAM
 VRAM_TOTAL = 2048
 
 #time between updates in seconds
@@ -77,18 +77,21 @@ def update_variables():
                                           "--query-gpu=memory.total",
                                           "--format=csv,noheader,nounits"])
 
-        global VRAM_TOTAL
+        global VRAM_TOTAL # pylint: disable=global-statement
         VRAM_TOTAL = int(output.decode("utf-8").strip())
-        log_mess(f"Detected {VRAM_TOTAL}Mib of VRAM aviable.", 1)
+        log_mess(f"Detected {VRAM_TOTAL}Mib of VRAM available.", 1)
 
-        global MAX_VRAM_USAGE
+        global MAX_VRAM_USAGE # pylint: disable=global-statement
         MAX_VRAM_USAGE = VRAM_TOTAL * .9
         log_mess(f"MAX_VRAM_USAGE set to {VRAM_TOTAL * .9}", 1)
 
+        log_mess(f"Script will update every {WAITTIME}s", 1)
+
     except subprocess.CalledProcessError as e:
         log_err(f"Failed to gather necessary info due to following errors: {e}")
+
     except FileNotFoundError:
-        log_err(f"Failed to gather necessary info, make sure that nvidia drivers are installed!")
+        log_err("Failed to gather necessary info, make sure that nvidia drivers are installed!")
         sys.exit()
 
 
@@ -132,17 +135,38 @@ def start_monitoring():
     while True:
         vram_usage = get_vram_usage()
         if vram_usage is not None:
-            if vram_usage < last_warning_vram - TRESHOLD and last_warning_vram >= MAX_VRAM_USAGE:
-                last_warning_vram -= TRESHOLD
+            if vram_usage < last_warning_vram - THRESHOLD and last_warning_vram >= MAX_VRAM_USAGE:
+                last_warning_vram -= THRESHOLD
             log_mess(f"VRAM Usage: {vram_usage} MiB")
-            if vram_usage > last_warning_vram + TRESHOLD:
-                last_warning_vram += TRESHOLD
+            if vram_usage > last_warning_vram + THRESHOLD:
+                last_warning_vram += THRESHOLD
                 send_vram_warning("VRAM usage critical! " +
                         f"{vram_usage}/{VRAM_TOTAL}Mib, " +
                         f"({(int)((vram_usage / VRAM_TOTAL) * 100)}%)")
         time.sleep(WAITTIME)
 
+def main():
+    """
+    init function
+    """
+    global AUTODETECT # pylint: disable=global-statement
+
+    parser = argparse.ArgumentParser("python3 vram_helper.py")
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--noauto', dest='auto', action='store_false',
+                       help='Disable automatic detection mode')
+    parser.set_defaults(auto=True)
+    args = parser.parse_args()
+
+    AUTODETECT = args.auto
+
+    if AUTODETECT:
+        update_variables()
+    else:
+        log_warn("Program will not attempt to gather any information, " +
+        "make sure that information provided in the script is correct!")
+    start_monitoring()
 
 if __name__ == "__main__":
-    update_variables()
-    start_monitoring()
+    main()
