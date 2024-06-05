@@ -6,7 +6,7 @@ MAX_VRAM_USAGE is maximal acceptable VRAM usage,
 if GPU exceeds this limit warning will be displayed,
 then for every +TRESHOLD Mib it will display another warning
 
-BUDGET is your gpu VRAM capacity. Make sure to update this variable
+VRAM_TOTAL is your gpu VRAM capacity. Make sure to update this variable
 """
 
 import subprocess
@@ -21,7 +21,7 @@ MAX_VRAM_USAGE = 3800
 TRESHOLD = 100
 
 #max aviable VRAM, make sure to update this variable
-BUDGET = 4096
+VRAM_TOTAL = 2048
 
 #time between updates in seconds
 WAITTIME = 2
@@ -33,29 +33,55 @@ WAITTIME = 2
 VERBOSITY_LEVEL = 0
 
 
-def log_mess(message):
+def log_mess(message, layer = 0):
     """
     prints messages in log format
     """
     if VERBOSITY_LEVEL > 0:
         return
-    print(f"\033[92m[LOG]\033[0m {message}")
+    print(" " * 2 * layer + f"\033[92m[LOG]\033[0m {message}")
 
 
-def log_warn(message):
+def log_warn(message, layer = 0):
     """
     prints messages in warning format
     """
     if VERBOSITY_LEVEL > 1:
         return
-    print(f"\033[33m[WARN]\033[0m {message}")
+    print(" " * 2 * layer + f"\033[33m[WARN]\033[0m {message}")
 
 
-def log_err(message):
+def log_err(message, layer = 0):
     """
     prints messages in error format
     """
-    print(f"\033[91m[ERR]\033[0m {message}")
+    print(" " * 2 * layer + f"\033[91m[ERR]\033[0m {message}")
+
+
+def update_variables():
+    """
+    automatically updates variables based on gathered info
+    """
+    log_mess("Attempting to autodetect necessary info...")
+    try:
+        output = subprocess.check_output(["nvidia-smi",
+                                          "--query-gpu=name",
+                                          "--format=csv,noheader"])
+        log_mess(f"Detected GPU: {output.decode('utf-8').strip()}", 1)
+        output = subprocess.check_output(["nvidia-smi",
+
+                                          "--query-gpu=memory.total",
+                                          "--format=csv,noheader,nounits"])
+
+        global VRAM_TOTAL
+        VRAM_TOTAL = int(output.decode("utf-8").strip())
+        log_mess(f"Detected {VRAM_TOTAL}Mib of VRAM aviable.", 1)
+
+    except subprocess.CalledProcessError as e:
+        log_err(f"Failed to gather necessary info due to following errors: {e}")
+        sys.exit()
+    except FileNotFoundError:
+        log_err(f"Failed to gather necessary info due to following errors: {e}")
 
 
 def get_vram_usage():
@@ -103,10 +129,11 @@ def start_monitoring():
             if vram_usage > last_warning_vram + TRESHOLD:
                 last_warning_vram += TRESHOLD
                 send_vram_warning("VRAM usage critical! " +
-                        f"{vram_usage}/{BUDGET}Mib, " + 
-                        f"({(int)((vram_usage / BUDGET) * 100)}%)")
+                        f"{vram_usage}/{VRAM_TOTAL}Mib, " +
+                        f"({(int)((vram_usage / VRAM_TOTAL) * 100)}%)")
         time.sleep(WAITTIME)
 
 
 if __name__ == "__main__":
+    update_variables()
     start_monitoring()
