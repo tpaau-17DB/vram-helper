@@ -88,10 +88,10 @@ def update_variables():
         log_mess(f"Script will update every {WAITTIME}s", 1)
 
     except subprocess.CalledProcessError as e:
-        log_err(f"Failed to gather necessary info due to following errors: {e}")
+        log_err(f"Failed to gather necessary info due to following errors: {e}", 1)
 
     except FileNotFoundError:
-        log_err("Failed to gather necessary info, make sure that nvidia drivers are installed!")
+        log_err("Failed to gather necessary info, make sure that nvidia drivers are installed!", 1)
         sys.exit()
 
 
