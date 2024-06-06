@@ -23,23 +23,22 @@ Little python script that displays warnings when VRAM exceeds specified limit. U
   This should send notification that says "It works"
 
 ## Running
-  With nvidia-smi and other requirements installed you can run the script by typing:
+  With nvidia drivers and other requirements installed you can run the script by typing:
 
   ```
   python3 vram-helper.py
   ```
 
-  The script should start printing current vram usage
+  The script should start printing current VRAM usage
 
   For options type:
 
   ```
   python3 vram-helper.py -h
   ```
-
-  Please make sure to adjust settings inside the script - it does not automatically detect your GPU VRAM capacity
+Script should automatically update its variables unless you use the `--noauto` parameter. Make sure the values are correct
 
 ## Using
-  When doing some vram-intensive task just run `python3 vram-helper.py` in another terminal - it will prevent crashes by notifying you about critical VRAM levels
+  When doing some VRAM-intensive task just run `python3 vram-helper.py` in another terminal - it will prevent crashes by notifying you about critical VRAM levels
 
   You can always make this script run on start, but this can be very annoying when playing games, so I just run it manually
