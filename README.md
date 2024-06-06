@@ -14,10 +14,10 @@ Little python script that displays warnings when VRAM exceeds specified limit. U
   ```
 -->
 
-  Script will send notifications using notify-send, so make sure it works and is configured properly. You can do this by typing:
+  Program will send notifications using notify-send, so make sure it works and is configured properly. You can do this by typing:
 
   ```
-  notify-send -u normal "It works?"
+  notify-send -u normal "It works"
   ```
 
   This should send notification that says "It works"
@@ -38,7 +38,7 @@ Little python script that displays warnings when VRAM exceeds specified limit. U
   ```
 Script should automatically update its variables unless you use the `--noauto` parameter. Make sure the values are correct
 
-## Using
+## Usage
   When doing some VRAM-intensive task just run `python3 vram-helper.py` in another terminal - it will prevent crashes by notifying you about critical VRAM levels
 
   You can always make this script run on start, but this can be very annoying when playing games, so I just run it manually
