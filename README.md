@@ -20,7 +20,7 @@ Little python script that displays warnings when VRAM exceeds specified limit. U
   notify-send -u normal "It works?"
   ```
 
-  in your terminal - this should send notification that says "It works"
+  This should send notification that says "It works"
 
 ## Running
   With nvidia-smi and other requirements installed you can run the script by typing:
