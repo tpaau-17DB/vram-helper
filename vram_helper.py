@@ -24,6 +24,9 @@ THRESHOLD = 100
 #max available VRAM
 VRAM_TOTAL = 2048
 
+#max acceptable temperature in degrees Celcius
+MAX_TEMP = 80
+
 #time between updates in seconds
 WAITTIME = 2
 
@@ -87,6 +90,8 @@ def update_variables():
 
         log_mess(f"Script will update every {WAITTIME}s", 1)
 
+        log_mess(f"Max acceptable temperature is set to {MAX_TEMP}°C", 1)
+
     except subprocess.CalledProcessError as e:
         log_err(f"Failed to gather necessary info due to following errors: {e}", 1)
 
@@ -114,6 +119,26 @@ def get_vram_usage():
                 "Please make sure NVIDIA drivers are installed.")
         sys.exit()
 
+def get_temp():
+    """
+    returns GPU temperature in degrees celcius
+    """
+    try:
+        output = subprocess.check_output(["nvidia-smi",
+                                          "--query-gpu=temperature.gpu",
+                                          "--format=csv,noheader,nounits"])
+        return int(re.search(r'\d+', output.decode('utf-8')).group())
+    except subprocess.CalledProcessError as e:
+        log_err(f"Failed to get GPU temperature! {e}")
+        sys.exit()
+
+    except FileNotFoundError:
+        log_err("Failed to get GPU temperature! " +
+                "'nvidia-smi' command not found. " +
+                "Please make sure NVIDIA drivers are installed.")
+        sys.exit()
+
+
 
 def send_vram_warning(message):
     """
@@ -134,10 +159,11 @@ def start_monitoring():
     last_warning_vram = MAX_VRAM_USAGE - 20
     while True:
         vram_usage = get_vram_usage()
+        gpu_temp = get_temp()
         if vram_usage is not None:
             if vram_usage < last_warning_vram - THRESHOLD and last_warning_vram >= MAX_VRAM_USAGE:
                 last_warning_vram -= THRESHOLD
-            log_mess(f"VRAM Usage: {vram_usage} MiB")
+            log_mess(f"VRAM Usage: {vram_usage} MiB, temp: {gpu_temp}°C")
             if vram_usage > last_warning_vram + THRESHOLD:
                 last_warning_vram += THRESHOLD
                 send_vram_warning("VRAM usage critical! " +
